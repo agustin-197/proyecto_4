@@ -88,7 +88,7 @@ digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal){
 
 bool DigitalInputGetState(digital_input_t self){
 //Lee estado del pin directamente con la funcion de NXP y se lo devuelve
-        return Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal);
+        return !Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal); //invierto lectura (devuelve true si el pin lee 0)
 }
 
 void DigitalOutputActivate(digital_output_t self){
