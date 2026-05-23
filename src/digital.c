@@ -34,11 +34,17 @@ SPDX-License-Identifier: MIT
 
 #include "digital.h"
 #include <stdlib.h>
+#include "chip.h"
 
 /* === Macros definitions ====================================================================== */
 
 /* === Private data type declarations ========================================================== */
 struct digital_output_s {
+   uint32_t puerto;
+   uint8_t terminal;
+};
+
+struct digital_input_s {
    uint32_t puerto;
    uint8_t terminal;
 };
@@ -63,10 +69,26 @@ digital_output_t DigitalOutputCreate(uint32_t puerto, uint8_t terminal){
         self ->terminal = terminal;
         DigitalOutputDeactivate(self);
         Chip_GPIO_SetPinDIR(LPC_GPIO_PORT,  self->puerto, self->terminal, true);
-
     }
     return self;
-    
+}
+
+digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal){
+        digital_input_t self;
+        self = malloc(sizeof(struct digital_input_s));
+        if (self)
+        {
+                self ->puerto = puerto;
+                self ->terminal = terminal;
+                Chip_GPIO_SetPinDIR(LPC_GPIO_PORT, self->puerto, self->terminal, false); //configura direccion como entrada
+        }
+        return self;
+        
+}
+
+bool DigitalInputGetState(digital_input_t self){
+//Lee estado del pin directamente con la funcion de NXP y se lo devuelve
+        return Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal);
 }
 
 void DigitalOutputActivate(digital_output_t self){
@@ -80,8 +102,7 @@ void DigitalOutputDeactivate(digital_output_t self){
 }
 
 void DigitalOutputToggle(digital_output_t self){
-        Chip_GPIO_SetPinState(LPC_GPIO_PORT, self->puerto, self->terminal);
-
+        Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, self->puerto, self->terminal);
 
 }
 
