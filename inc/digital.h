@@ -31,7 +31,10 @@ SPDX-License-Identifier: MIT
 
 /** @file digital.h
  ** @brief Declaraciones de la biblioteca para gestion de entradas y salidas digitales
+ ** @details Define los tipos de datos abstractos y las funciones públicas 
+ ** necesarias para interactuar con los pines GPIO configurados como entradas o salidas.
 **/
+
 /* === Headers files inclusions ==================================================================================== */
 
 #include <stdint.h>
@@ -47,21 +50,60 @@ extern "C" {
 
 /* === Public data type declarations =============================================================================== */
 
+/**
+ * @brief Puntero al tipo de dato abstracto que representa una Salida Digital
+ */
 typedef struct digital_output_s * digital_output_t;
-typedef struct digital_input_s * digital_input_t; //defino el nuevo tipo para las entradas
+
+/**
+ * @brief Puntero al tipo de dato abstracto que representa una Entrada Digital
+ */
+typedef struct digital_input_s * digital_input_t;
 
 /* === Public variable declarations ================================================================================ */
 
 /* === Public function declarations ================================================================================ */
 
-//Funciones de salida
+/**
+ * @brief Crea y configura una nueva Salida Digital
+ * @param puerto Puerto GPIO al que pertenece el pin
+ * @param terminal Número de pin dentro del puerto GPIO
+ * @return digital_output_t Puntero al objeto creado o NULL en caso de error
+ */
 digital_output_t DigitalOutputCreate(uint32_t puerto, uint8_t terminal);
+
+/**
+ * @brief Activa (enciende) una Salida Digital
+ * @param salida Puntero al objeto de la salida a activar
+ */
 void DigitalOutputActivate(digital_output_t salida);
+
+/**
+ * @brief Desactiva (apaga) una Salida Digital
+ * @param salida Puntero al objeto de la salida a desactivar
+ */
 void DigitalOutputDeactivate(digital_output_t salida);
+
+/**
+ * @brief Invierte el estado actual de una Salida Digital
+ * @param salida Puntero al objeto de la salida a invertir
+ */
 void DigitalOutputToggle(digital_output_t salida);
 
-//Funciones de entrada
+/**
+ * @brief Crea y configura una nueva Entrada Digital
+ * @param puerto Puerto GPIO al que pertenece el pin
+ * @param terminal Número de pin dentro del puerto GPIO
+ * @return digital_input_t Puntero al objeto creado o NULL en caso de error
+ */
 digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal);
+
+/**
+ * @brief Consulta el estado actual de una Entrada Digital
+ * @param entrada Puntero al objeto de la entrada a consultar
+ * @return true Si la entrada está activada/presionada
+ * @return false Si la entrada está desactivada/suelta
+ */
 bool DigitalInputGetState(digital_input_t entrada);
 
 /* === End of conditional blocks =================================================================================== */

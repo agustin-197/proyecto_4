@@ -29,11 +29,26 @@ SPDX-License-Identifier: MIT
  ** \brief Samples applications with MUJU Framwork
  ** @{ */
 
+/**
+ * @file main.c
+ * @brief Programa principal para el Laboratorio 4
+ * @details Implementación de lógicas de control de LEDs usando teclas
+ * a través de capas de abstracción de hardware (HAL y BSP).
+ */
+
 /* === Headers files inclusions =============================================================== */
 
 #include "bsp.h"
 #include <stdbool.h>
 
+/* === Private function implementations ======================================================= */
+
+/**
+ * @brief Genera un retardo bloqueante
+ * * Implementa un retardo por software de aproximadamente 100 ms
+ * mediante bucles anidados iterando variables y ejecutando la 
+ * instrucción NOP (No Operation) en ensamblador.
+ */
 static void Delay(void) {
     for (int index = 0; index < 100; index++)
     {
@@ -44,15 +59,29 @@ static void Delay(void) {
     }
 }
 
+/* === Public function implementations ======================================================== */
+
+/**
+ * @brief Función principal del sistema
+ * * Punto de entrada del programa. Inicializa el hardware a través 
+ * de la capa Board Support Package (BSP) y ejecuta un bucle infinito 
+ * con las lógicas de control de las entradas y salidas digitales.
+ * * @return int El programa nunca debería retornar de esta función.
+ */
 int main(void){
-    //iinicializo toda la placa
+    /* 1. Inicialización de la placa y creación de objetos funcionales */
     board_t edu_ciaa = BoardCreate();
 
+    /* Variable de estado para detectar el flanco de la tecla 3 */
     bool ultimo_estado_tecla_3 = false;
 
     while (true)
     {
-        //tecla 1 prende led1, tecla 2 apaga led1
+        /* ==================================================================== */
+        /* Lógica Switch: Encendido y apagado con teclas separadas              */
+        /* - Tecla 1: Enciende el LED 1                                         */
+        /* - Tecla 2: Apaga el LED 1                                            */
+        /* ==================================================================== */
         if (DigitalInputGetState(edu_ciaa->tecla_1))
         {
             DigitalOutputActivate(edu_ciaa->led_1);
@@ -62,25 +91,34 @@ int main(void){
             DigitalOutputDeactivate(edu_ciaa->led_1);
         }
 
-        //logica toggle led (tecla 3 invierte led rojo)
+        /* ==================================================================== */
+        /* Lógica Toggle: Alternancia de estado                                 */
+        /* - Tecla 3: Cada vez que se presiona, invierte el estado del LED Rojo */
+        /* ==================================================================== */
         bool estado_tecla_3 = DigitalInputGetState(edu_ciaa->tecla_3);
 
-        //si se acaba de presionar la tecla pasa de false a true
+        // Se verifica si la tecla pasó de no presionada (false) a presionada (true)
         if (estado_tecla_3 && !ultimo_estado_tecla_3)
         {
             DigitalOutputToggle(edu_ciaa->led_rojo);
         }
         ultimo_estado_tecla_3 = estado_tecla_3;
 
-        //logica testled (led verde encendido mientras se presiona tecla 4)
+        /* ==================================================================== */
+        /* Lógica Test: Modo Pulsador                                           */
+        /* - Tecla 4: El LED Verde enciende solo mientras se mantenga presionada*/
+        /* ==================================================================== */
         if (DigitalInputGetState(edu_ciaa->tecla_4))
         {
             DigitalOutputActivate(edu_ciaa->led_verde);
-        }else{
+        } else {
             DigitalOutputDeactivate(edu_ciaa->led_verde);
         }
 
+        /* Retardo para evitar rebotes (debounce) y reducir la carga del CPU */
         Delay();   
     }
     return 0;
 }
+
+/** @} doxygen end group definition */

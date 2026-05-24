@@ -27,7 +27,10 @@ SPDX-License-Identifier: MIT
 *************************************************************************************************/
 
 /** @file bsp.c
- ** @brief Plantilla para la creación de archivos de código fuente en lenguaje C
+ ** @brief Implementación del Board Support Package (BSP)
+ ** @details Este archivo oculta los detalles de configuración de bajo nivel
+ ** del microcontrolador y la asignación de pines, creando y exponiendo
+ ** únicamente objetos abstractos de entradas y salidas para la aplicación.
  **/
 
 /* === Headers files inclusions ================================================================ */
@@ -37,7 +40,6 @@ SPDX-License-Identifier: MIT
 #include <stdlib.h>
 
 /* === Macros definitions ====================================================================== */
-
 
 #define LED_R_PORT 2
 #define LED_R_PIN  0
@@ -105,6 +107,12 @@ SPDX-License-Identifier: MIT
 
 /* === Private variable definitions ============================================================ */
 
+/**
+ * @brief Instancia estática de la estructura de la placa
+ * @details Almacena los punteros a todos los objetos de hardware (entradas y salidas).
+ * Al ser estática, su memoria persiste durante toda la ejecución y no es accesible 
+ * directamente desde otros archivos, garantizando el encapsulamiento.
+ */
 static struct board_s board;
 
 /* === Public variable definition  ============================================================= */
@@ -113,6 +121,12 @@ static struct board_s board;
 
 /* === Private function implementations ============================================================ */
 
+/**
+ * @brief Configura la multiplexación física de los pines del microcontrolador
+ * @details Utiliza la unidad de control del sistema (SCU) de NXP para asignar la 
+ * función correcta a cada pin físico, habilitando los buffers de entrada y las 
+ * resistencias de pull-up necesarias para los pulsadores.
+ */
 static void BoardPinsConfigure(void) {
     Chip_SCU_PinMuxSet(LED_R_PORT, LED_R_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_INACT | LED_R_FUNC);
     Chip_SCU_PinMuxSet(LED_G_PORT, LED_G_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_INACT | LED_G_FUNC);
@@ -129,6 +143,13 @@ static void BoardPinsConfigure(void) {
 
 /* === Public function implementation ========================================================== */
 
+/**
+ * @brief Inicializa y configura todos los recursos de hardware de la placa
+ * @details Esta función debe ser llamada una única vez al inicio del programa.
+ * Configura los periféricos GPIO, rutea los pines eléctricos y crea las 
+ * abstracciones lógicas (ADTs) correspondientes a cada LED y Tecla.
+ * @return board_t Puntero a la estructura de la placa lista para ser utilizada.
+ */
 board_t BoardCreate(void) {
     // 1. Inicializa el periférico GPIO completo con la biblioteca de NXP
     Chip_GPIO_Init(LPC_GPIO_PORT);
