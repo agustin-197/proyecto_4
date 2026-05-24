@@ -30,39 +30,53 @@ SPDX-License-Identifier: MIT
 #define DIGITAL_H_
 
 /** @file digital.h
- ** @brief Declaraciones de la biblioteca para gestion de entradas y salidas digitales
- ** @details Define los tipos de datos abstractos y las funciones públicas 
- ** necesarias para interactuar con los pines GPIO configurados como entradas o salidas.
-**/
+ ** @brief Declaraciones de la biblioteca para gestion de entradas y salidas
+ * digitales
+ ** @details Define los tipos de datos abstractos y las funciones públicas
+ ** necesarias para interactuar con los pines GPIO configurados como entradas o
+ * salidas.
+ **/
 
-/* === Headers files inclusions ==================================================================================== */
+/* === Headers files inclusions
+ * ====================================================================================
+ */
 
 #include <stdint.h>
 #include <stdbool.h>
 
-/* === Header for C++ compatibility ================================================================================ */
+/* === Header for C++ compatibility
+ * ================================================================================
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* === Public macros definitions =================================================================================== */
+/* === Public macros definitions
+ * ===================================================================================
+ */
 
-/* === Public data type declarations =============================================================================== */
+/* === Public data type declarations
+ * ===============================================================================
+ */
 
 /**
  * @brief Puntero al tipo de dato abstracto que representa una Salida Digital
  */
-typedef struct digital_output_s * digital_output_t;
+typedef struct digital_output_s *digital_output_t;
 
 /**
  * @brief Puntero al tipo de dato abstracto que representa una Entrada Digital
  */
-typedef struct digital_input_s * digital_input_t;
+typedef struct digital_input_s *digital_input_t;
 
-/* === Public variable declarations ================================================================================ */
+/* === Public variable declarations
+ * ================================================================================
+ */
 
-/* === Public function declarations ================================================================================ */
+/* === Public function declarations
+ * ================================================================================
+ */
 
 /**
  * @brief Crea y configura una nueva Salida Digital
@@ -106,7 +120,9 @@ digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal);
  */
 bool DigitalInputGetState(digital_input_t entrada);
 
-/* === End of conditional blocks =================================================================================== */
+/* === End of conditional blocks
+ * ===================================================================================
+ */
 
 #ifdef __cplusplus
 }
