@@ -26,8 +26,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 SPDX-License-Identifier: MIT
 *************************************************************************************************/
 
-#ifndef BSP_H_
-#define BSP_H_
+#ifndef PLACA_H_
+#define PLACA_H_
 
 /** @file bsp.h
  ** @brief Declaraciones de la capa de abstracción de la placa (Board Support
@@ -101,4 +101,4 @@ board_t BoardCreate(void);
 }
 #endif
 
-#endif /* BSP_H_ */
+#endif /* PLACA_H_ */

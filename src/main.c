@@ -41,7 +41,7 @@ SPDX-License-Identifier: MIT
 /* === Headers files inclusions
  * =============================================================== */
 
-#include "bsp.h"
+#include "placa.h"
 #include <stdbool.h>
 
 /* === Private function implementations

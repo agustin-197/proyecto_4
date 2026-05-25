@@ -26,7 +26,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 SPDX-License-Identifier: MIT
 *************************************************************************************************/
 
-/** @file bsp.c
+/** @file placa.c
  ** @brief Implementación del Board Support Package (BSP)
  ** @details Este archivo oculta los detalles de configuración de bajo nivel
  ** del microcontrolador y la asignación de pines, creando y exponiendo
@@ -36,7 +36,7 @@ SPDX-License-Identifier: MIT
 /* === Headers files inclusions
  * ================================================================ */
 
-#include "bsp.h"
+#include "placa.h"
 #include "chip.h"
 #include <stdlib.h>
 
