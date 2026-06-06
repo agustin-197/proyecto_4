@@ -60,6 +60,7 @@ struct digital_output_s {
 struct digital_input_s {
     uint32_t puerto;  /**< Puerto GPIO asociado a la entrada */
     uint8_t terminal; /**< Terminal o bit dentro del puerto GPIO */
+    bool invertido; /**< Indica si la entrada requiere invertir la lectura física (true) o no (false) */
 };
 
 /* === Private function declarations
@@ -101,19 +102,20 @@ digital_output_t DigitalOutputCreate(uint32_t puerto, uint8_t terminal) {
 
 /**
  * @brief Instancia e inicializa un objeto de entrada digital
- * * Se asigna memoria para el objeto, se guarda la información del puerto y
- * terminal, y se configura la dirección del pin correspondiente como entrada.
+ * @details Se asigna memoria para el objeto, se guarda la información del puerto, terminal,
+ * y su tipo de lógica (directa o invertida), y se configura el pin correspondiente como entrada.
  * * @param puerto Número de puerto GPIO
  * @param terminal Número de terminal (bit) dentro del puerto
- * @return digital_input_t Puntero al objeto creado, o NULL si falla la
- * asignación de memoria
+ * @param invertido Configuración de la lógica (true para lógica negada, false para directa)
+ * @return digital_input_t Puntero al objeto creado, o NULL si falla la asignación de memoria
  */
-digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal) {
+digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal, bool invertido) {
     digital_input_t self;
     self = malloc(sizeof(struct digital_input_s));
     if (self) {
         self->puerto = puerto;
         self->terminal = terminal;
+        self->invertido = invertido; //Guarda la configuracion
         Chip_GPIO_SetPinDIR(LPC_GPIO_PORT, self->puerto, self->terminal,
                             false); // Configura dirección como entrada
     }
@@ -121,16 +123,17 @@ digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal) {
 }
 
 /**
- * @brief Obtiene el estado actual de una entrada digital
+ * @brief Obtiene el estado lógico actual de una entrada digital
+ * @details Lee el estado físico del pin directamente con la función de NXP 
+ * y aplica la inversión lógica si el objeto fue configurado como invertido.
  * * @param self Puntero al objeto de la entrada digital
- * @return true Si la entrada está activa (pin en nivel bajo)
- * @return false Si la entrada está inactiva (pin en nivel alto)
+ * @return true Si el evento esperado está ocurriendo (activado)
+ * @return false Si la entrada está en reposo
  */
 bool DigitalInputGetState(digital_input_t self) {
-    // Lee estado del pin directamente con la función de NXP y se lo devuelve.
-    // Se invierte la lectura (!) ya que los pulsadores conectan a masa (lógica
-    // negativa).
-    return !Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal);
+    bool estado = Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal);
+    // Si está configurado como invertido, devuelve lo contrario de la lectura física
+    return self->invertido ? !estado : estado;
 }
 
 /**

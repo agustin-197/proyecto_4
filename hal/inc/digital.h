@@ -108,15 +108,16 @@ void DigitalOutputToggle(digital_output_t salida);
  * @brief Crea y configura una nueva Entrada Digital
  * @param puerto Puerto GPIO al que pertenece el pin
  * @param terminal Número de pin dentro del puerto GPIO
+ * @param invertido true si la entrada es activa en bajo (lógica negada, ej: pulsadores a GND), false si es activa en alto (lógica directa)
  * @return digital_input_t Puntero al objeto creado o NULL en caso de error
  */
-digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal);
+digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal, bool invertido);
 
 /**
- * @brief Consulta el estado actual de una Entrada Digital
+ * @brief Consulta el estado lógico actual de una Entrada Digital
  * @param entrada Puntero al objeto de la entrada a consultar
- * @return true Si la entrada está activada/presionada
- * @return false Si la entrada está desactivada/suelta
+ * @return true Si la entrada está activada/presionada (contemplando si es lógica directa o negada)
+ * @return false Si la entrada está inactiva/suelta
  */
 bool DigitalInputGetState(digital_input_t entrada);
 

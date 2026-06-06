@@ -29,9 +29,8 @@ SPDX-License-Identifier: MIT
 #ifndef PLACA_H_
 #define PLACA_H_
 
-/** @file bsp.h
- ** @brief Declaraciones de la capa de abstracción de la placa (Board Support
- * Package)
+/** @file placa.h
+ ** @brief Declaraciones de la capa de abstracción de la placa
  ** @details Define la estructura de datos que contiene todos los recursos
  * funcionales
  ** de hardware de la placa (LEDs y Teclas) y declara la función de

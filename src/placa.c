@@ -188,10 +188,10 @@ board_t BoardCreate(void) {
 
     // 4. Creamos los objetos lógicos de abstracción para cada Entrada Digital
     // (Teclas)
-    board.tecla_1 = DigitalInputCreate(TEC_1_GPIO, TEC_1_BIT);
-    board.tecla_2 = DigitalInputCreate(TEC_2_GPIO, TEC_2_BIT);
-    board.tecla_3 = DigitalInputCreate(TEC_3_GPIO, TEC_3_BIT);
-    board.tecla_4 = DigitalInputCreate(TEC_4_GPIO, TEC_4_BIT);
+    board.tecla_1 = DigitalInputCreate(TEC_1_GPIO, true);
+    board.tecla_2 = DigitalInputCreate(TEC_2_GPIO, true);
+    board.tecla_3 = DigitalInputCreate(TEC_3_GPIO, true);
+    board.tecla_4 = DigitalInputCreate(TEC_4_GPIO, true);
 
     // 5. Devolvemos el puntero a la estructura que tiene todo listo para usar
     return &board;
