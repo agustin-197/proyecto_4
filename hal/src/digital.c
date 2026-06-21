@@ -60,7 +60,8 @@ struct digital_output_s {
 struct digital_input_s {
     uint32_t puerto;  /**< Puerto GPIO asociado a la entrada */
     uint8_t terminal; /**< Terminal o bit dentro del puerto GPIO */
-    bool invertido; /**< Indica si la entrada requiere invertir la lectura física (true) o no (false) */
+    bool invertido;   /**< Indica si la entrada requiere invertir la lectura física (true) o no (false) */
+    bool last_state;  /**< Memoria del estado anterior para la detección de flancos */
 };
 
 /* === Private function declarations
@@ -80,13 +81,9 @@ struct digital_input_s {
 
 /**
  * @brief Instancia e inicializa un objeto de salida digital
- * * Se asigna memoria para el objeto, se guarda la información del puerto y
- * terminal, se asegura que inicie en estado apagado y se configura el pin como
- * salida.
- * * @param puerto Número de puerto GPIO
+ * @param puerto Número de puerto GPIO
  * @param terminal Número de terminal (bit) dentro del puerto
- * @return digital_output_t Puntero al objeto creado, o NULL si falla la
- * asignación de memoria
+ * @return digital_output_t Puntero al objeto creado, o NULL si falla la asignación de memoria
  */
 digital_output_t DigitalOutputCreate(uint32_t puerto, uint8_t terminal) {
     digital_output_t self;
@@ -102,9 +99,7 @@ digital_output_t DigitalOutputCreate(uint32_t puerto, uint8_t terminal) {
 
 /**
  * @brief Instancia e inicializa un objeto de entrada digital
- * @details Se asigna memoria para el objeto, se guarda la información del puerto, terminal,
- * y su tipo de lógica (directa o invertida), y se configura el pin correspondiente como entrada.
- * * @param puerto Número de puerto GPIO
+ * @param puerto Número de puerto GPIO
  * @param terminal Número de terminal (bit) dentro del puerto
  * @param invertido Configuración de la lógica (true para lógica negada, false para directa)
  * @return digital_input_t Puntero al objeto creado, o NULL si falla la asignación de memoria
@@ -115,30 +110,63 @@ digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal, bool inver
     if (self) {
         self->puerto = puerto;
         self->terminal = terminal;
-        self->invertido = invertido; //Guarda la configuracion
-        Chip_GPIO_SetPinDIR(LPC_GPIO_PORT, self->puerto, self->terminal,
-                            false); // Configura dirección como entrada
+        self->invertido = invertido; 
+        self->last_state = false; // Inicializamos la memoria de estado
+        Chip_GPIO_SetPinDIR(LPC_GPIO_PORT, self->puerto, self->terminal, false);
     }
     return self;
 }
 
 /**
  * @brief Obtiene el estado lógico actual de una entrada digital
- * @details Lee el estado físico del pin directamente con la función de NXP 
- * y aplica la inversión lógica si el objeto fue configurado como invertido.
- * * @param self Puntero al objeto de la entrada digital
+ * @param self Puntero al objeto de la entrada digital
  * @return true Si el evento esperado está ocurriendo (activado)
  * @return false Si la entrada está en reposo
  */
 bool DigitalInputGetState(digital_input_t self) {
     bool estado = Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal);
-    // Si está configurado como invertido, devuelve lo contrario de la lectura física
     return self->invertido ? !estado : estado;
 }
 
 /**
+ * @brief Detecta si hubo un cambio en el estado de la Entrada Digital
+ * @param self Puntero al objeto de la entrada a consultar
+ * @return true Si el estado cambió desde la última vez que se consultó
+ */
+bool DigitalInputHasChanged(digital_input_t self) {
+    bool estado_actual = DigitalInputGetState(self);
+    bool cambio = (estado_actual != self->last_state);
+    self->last_state = estado_actual; // Actualiza la memoria
+    return cambio;
+}
+
+/**
+ * @brief Detecta si la Entrada Digital acaba de ser presionada (Flanco de activación)
+ * @param self Puntero al objeto de la entrada a consultar
+ * @return true Si pasó de inactiva a activa
+ */
+bool DigitalInputHasActivated(digital_input_t self) {
+    bool estado_actual = DigitalInputGetState(self);
+    bool activado = (estado_actual && !self->last_state);
+    self->last_state = estado_actual; // Actualiza la memoria
+    return activado;
+}
+
+/**
+ * @brief Detecta si la Entrada Digital acaba de ser soltada (Flanco de desactivación)
+ * @param self Puntero al objeto de la entrada a consultar
+ * @return true Si pasó de activa a inactiva
+ */
+bool DigitalInputHasDeactivated(digital_input_t self) {
+    bool estado_actual = DigitalInputGetState(self);
+    bool desactivado = (!estado_actual && self->last_state);
+    self->last_state = estado_actual; // Actualiza la memoria
+    return desactivado;
+}
+
+/**
  * @brief Enciende o activa una salida digital
- * * @param self Puntero al objeto de la salida digital a encender
+ * @param self Puntero al objeto de la salida digital a encender
  */
 void DigitalOutputActivate(digital_output_t self) {
     Chip_GPIO_SetPinState(LPC_GPIO_PORT, self->puerto, self->terminal, true);
@@ -146,7 +174,7 @@ void DigitalOutputActivate(digital_output_t self) {
 
 /**
  * @brief Apaga o desactiva una salida digital
- * * @param self Puntero al objeto de la salida digital a apagar
+ * @param self Puntero al objeto de la salida digital a apagar
  */
 void DigitalOutputDeactivate(digital_output_t self) {
     Chip_GPIO_SetPinState(LPC_GPIO_PORT, self->puerto, self->terminal, false);
@@ -154,7 +182,7 @@ void DigitalOutputDeactivate(digital_output_t self) {
 
 /**
  * @brief Invierte el estado actual de una salida digital (Toggle)
- * * @param self Puntero al objeto de la salida digital a invertir
+ * @param self Puntero al objeto de la salida digital a invertir
  */
 void DigitalOutputToggle(digital_output_t self) {
     Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, self->puerto, self->terminal);

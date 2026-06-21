@@ -1,7 +1,8 @@
-/************************************************************************************************
-Copyright (c) 2022-2023, Laboratorio de Microprocesadores
-Facultad de Ciencias Exactas y Tecnología, Universidad Nacional de Tucumán
-https://www.microprocesadores.unt.edu.ar/
+/*********************************************************************************************************************
+Copyright 2016-2025, Laboratorio de Microprocesadores
+Facultad de Ciencias Exactas y Tecnología
+Universidad Nacional de Tucuman
+http://www.microprocesadores.unt.edu.ar/
 
 Copyright 2026, Gerardo Agustín Díaz <agustin041097@gmail.com>
 
@@ -23,109 +24,111 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SPDX-License-Identifier: MIT
-*************************************************************************************************/
+*********************************************************************************************************************/
 
-/** \brief EDU-CIAA-NXP board sample application
- **
- ** \addtogroup samples Samples
- ** \brief Samples applications with MUJU Framwork
- ** @{ */
+/** @file main.c
+ ** @brief Programa de prueba para el barrido de la pantalla de 7 segmentos
+ ** @details Archivo principal de la aplicación que inicializa el hardware y ejecuta
+ ** un bucle infinito para validar el funcionamiento del display multiplexado.
+ **/
 
-/**
- * @file main.c
- * @brief Programa principal para el Laboratorio 4
- * @details Implementación de lógicas de control de LEDs usando teclas
- * a través de capas de abstracción de hardware (HAL y BSP).
- */
-
-/* === Headers files inclusions
- * =============================================================== */
+/* === Headers files inclusions ================================================================ */
 
 #include "placa.h"
-#include <stdbool.h>
+#include "screen.h"
 
-/* === Private function implementations
- * ======================================================= */
+/* === Macros definitions ====================================================================== */
 
 /**
- * @brief Genera un retardo bloqueante
- * * Implementa un retardo por software de aproximadamente 100 ms
- * mediante bucles anidados iterando variables y ejecutando la
- * instrucción NOP (No Operation) en ensamblador.
+ * @brief Cantidad de ciclos de reloj para el retardo
+ * @details Este valor permite ajustar la velocidad a la que se refresca la pantalla
+ * durante la prueba visual.
  */
-static void Delay(void) {
-    for (int index = 0; index < 100; index++) {
-        for (int delay = 0; delay < 25000; delay++) {
-            __asm("NOP");
-        }
-    }
+#define CICLOS_RETARDO 10000
+
+/* === Private data type declarations ========================================================== */
+
+/* === Private function declarations =========================================================== */
+
+/**
+ * @brief Función de retardo muy rudimentaria para la prueba visual
+ * @details Utiliza un bucle for para perder ciclos de reloj.
+ * No es exacta y solo sirve para esta prueba inicial.
+ * @param[in] iteraciones Cantidad de iteraciones del bucle for para generar la demora.
+ */
+void RetardoBloqueante(uint32_t iteraciones) {
+    for (volatile uint32_t i = 0; i < iteraciones; i++);
 }
 
-/* === Public function implementations
- * ======================================================== */
+/* === Private variable definitions ============================================================ */
+
+/* === Public variable definition  ============================================================= */
+
+/* === Private function definitions ============================================================ */
+
+/* === Public function implementation ========================================================== */
 
 /**
- * @brief Función principal del sistema
- * * Punto de entrada del programa. Inicializa el hardware a través
- * de la capa Board Support Package (BSP) y ejecuta un bucle infinito
- * con las lógicas de control de las entradas y salidas digitales.
- * * @return int El programa nunca debería retornar de esta función.
+ * @brief Función principal del programa
+ * @details Inicializa la placa EDU-CIAA, configura la pantalla y el zumbador,
+ * y ejecuta el bucle principal de barrido y prueba.
+ * @return int Retorna 0 al finalizar la ejecución (nunca debería ocurrir en un sistema embebido).
  */
 int main(void) {
-    /* 1. Inicialización de la placa y creación de objetos funcionales */
-    board_t edu_ciaa = BoardCreate();
+    board_t mi_placa = BoardCreate();
 
-    /* Variable de estado para detectar el flanco de la tecla 3 */
-    bool ultimo_estado_tecla_3 = false;
+    // Arreglo con todos los dígitos del 0 al 9 para probar la tabla BCD
+    uint8_t digitos_completos[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    uint8_t offset = 0; // Controla qué número empieza a dibujarse
+    uint8_t buffer_display[4];
 
-    while (true) {
-        /* ====================================================================
-         */
-        /* Lógica Switch: Encendido y apagado con teclas separadas */
-        /* - Tecla 1: Enciende el LED 1 */
-        /* - Tecla 2: Apaga el LED 1 */
-        /* ====================================================================
-         */
-        if (DigitalInputGetState(edu_ciaa->tecla_1)) {
-            DigitalOutputActivate(edu_ciaa->led_1);
-        }
-        if (DigitalInputGetState(edu_ciaa->tecla_2)) {
-            DigitalOutputDeactivate(edu_ciaa->led_1);
-        }
+    // --- CARGA INICIAL ANTES DE ENTRAR AL BUCLE ---
+    buffer_display[0] = digitos_completos[(offset + 0) % 10];
+    buffer_display[1] = digitos_completos[(offset + 1) % 10];
+    buffer_display[2] = digitos_completos[(offset + 2) % 10];
+    buffer_display[3] = digitos_completos[(offset + 3) % 10];
+    DisplayWriteBCD(mi_placa->display, buffer_display, 4);
 
-        /* ====================================================================
-         */
-        /* Lógica Toggle: Alternancia de estado */
-        /* - Tecla 3: Cada vez que se presiona, invierte el estado del LED Rojo
-         */
-        /* ====================================================================
-         */
-        bool estado_tecla_3 = DigitalInputGetState(edu_ciaa->tecla_3);
+    while (1) {
+        // 1. Refrescar la pantalla (a esta velocidad, el ojo ve los 4 a la vez)
+        DisplayRefresh(mi_placa->display);
 
-        // Se verifica si la tecla pasó de no presionada (false) a presionada
-        // (true)
-        if (estado_tecla_3 && !ultimo_estado_tecla_3) {
-            DigitalOutputToggle(edu_ciaa->led_rojo);
-        }
-        ultimo_estado_tecla_3 = estado_tecla_3;
-
-        /* ====================================================================
-         */
-        /* Lógica Test: Modo Pulsador */
-        /* - Tecla 4: El LED Verde enciende solo mientras se mantenga
-         * presionada*/
-        /* ====================================================================
-         */
-        if (DigitalInputGetState(edu_ciaa->tecla_4)) {
-            DigitalOutputActivate(edu_ciaa->led_verde);
-        } else {
-            DigitalOutputDeactivate(edu_ciaa->led_verde);
+        // 2. PRUEBA DE TECLAS Y FUNCIONES:
+        
+        // Tecla ACEPTAR: Desplaza los números (0123 -> 1234 -> 2345)
+        if (DigitalInputHasActivated(mi_placa->tecla_accept)) {
+            offset++;
+            // Cargamos los nuevos números al buffer
+            buffer_display[0] = digitos_completos[(offset + 0) % 10];
+            buffer_display[1] = digitos_completos[(offset + 1) % 10];
+            buffer_display[2] = digitos_completos[(offset + 2) % 10];
+            buffer_display[3] = digitos_completos[(offset + 3) % 10];
+            
+            // ACTUALIZAMOS LA MEMORIA SOLO CUANDO CAMBIAN LOS NÚMEROS
+            DisplayWriteBCD(mi_placa->display, buffer_display, 4);
+            
+            DigitalOutputToggle(mi_placa->buzzer); // Sonido/LED de confirmación
         }
 
-        /* Retardo para evitar rebotes (debounce) y reducir la carga del CPU */
-        Delay();
+        // Tecla CANCELAR: Prueba de la función ToggleDots (enciende/apaga puntos)
+        if (DigitalInputHasActivated(mi_placa->tecla_cancel)) {
+            DisplayToggleDots(mi_placa->display, 0, 3);
+        }
+
+        // Tecla F1: Activa el parpadeo (FlashDigits) en todos los dígitos
+        // 100 significa que cambiará de estado cada 100 ciclos de barrido
+        if (DigitalInputHasActivated(mi_placa->tecla_f1)) {
+            DisplayFlashDigits(mi_placa->display, 0, 3, 100); 
+        }
+
+        // Tecla F2: Apaga el parpadeo (frecuencia 0)
+        if (DigitalInputHasActivated(mi_placa->tecla_f2)) {
+            DisplayFlashDigits(mi_placa->display, 0, 0, 0);
+        }
+
+        RetardoBloqueante(CICLOS_RETARDO);
     }
     return 0;
 }
 
-/** @} doxygen end group definition */
+/* === End of documentation ==================================================================== */

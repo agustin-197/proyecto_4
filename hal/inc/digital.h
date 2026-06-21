@@ -30,35 +30,25 @@ SPDX-License-Identifier: MIT
 #define DIGITAL_H_
 
 /** @file digital.h
- ** @brief Declaraciones de la biblioteca para gestion de entradas y salidas
- * digitales
+ ** @brief Declaraciones de la biblioteca para gestion de entradas y salidas digitales
  ** @details Define los tipos de datos abstractos y las funciones públicas
- ** necesarias para interactuar con los pines GPIO configurados como entradas o
- * salidas.
+ ** necesarias para interactuar con los pines GPIO configurados como entradas o salidas.
  **/
 
-/* === Headers files inclusions
- * ====================================================================================
- */
+/* === Headers files inclusions ==================================================================================== */
 
 #include <stdint.h>
 #include <stdbool.h>
 
-/* === Header for C++ compatibility
- * ================================================================================
- */
+/* === Header for C++ compatibility ================================================================================ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* === Public macros definitions
- * ===================================================================================
- */
+/* === Public macros definitions =================================================================================== */
 
-/* === Public data type declarations
- * ===============================================================================
- */
+/* === Public data type declarations =============================================================================== */
 
 /**
  * @brief Puntero al tipo de dato abstracto que representa una Salida Digital
@@ -70,13 +60,9 @@ typedef struct digital_output_s *digital_output_t;
  */
 typedef struct digital_input_s *digital_input_t;
 
-/* === Public variable declarations
- * ================================================================================
- */
+/* === Public variable declarations ================================================================================ */
 
-/* === Public function declarations
- * ================================================================================
- */
+/* === Public function declarations ================================================================================ */
 
 /**
  * @brief Crea y configura una nueva Salida Digital
@@ -108,7 +94,7 @@ void DigitalOutputToggle(digital_output_t salida);
  * @brief Crea y configura una nueva Entrada Digital
  * @param puerto Puerto GPIO al que pertenece el pin
  * @param terminal Número de pin dentro del puerto GPIO
- * @param invertido true si la entrada es activa en bajo (lógica negada, ej: pulsadores a GND), false si es activa en alto (lógica directa)
+ * @param invertido true si la entrada es activa en bajo (lógica negada), false si es activa en alto
  * @return digital_input_t Puntero al objeto creado o NULL en caso de error
  */
 digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal, bool invertido);
@@ -116,14 +102,36 @@ digital_input_t DigitalInputCreate(uint32_t puerto, uint8_t terminal, bool inver
 /**
  * @brief Consulta el estado lógico actual de una Entrada Digital
  * @param entrada Puntero al objeto de la entrada a consultar
- * @return true Si la entrada está activada/presionada (contemplando si es lógica directa o negada)
+ * @return true Si la entrada está activada/presionada
  * @return false Si la entrada está inactiva/suelta
  */
 bool DigitalInputGetState(digital_input_t entrada);
 
-/* === End of conditional blocks
- * ===================================================================================
+/**
+ * @brief Detecta si hubo un cambio en el estado de la Entrada Digital
+ * @param entrada Puntero al objeto de la entrada a consultar
+ * @return true Si el estado cambió desde la última vez que se consultó
+ * @return false Si el estado se mantiene igual
  */
+bool DigitalInputHasChanged(digital_input_t entrada);
+
+/**
+ * @brief Detecta si la Entrada Digital acaba de ser presionada (Flanco de activación)
+ * @param entrada Puntero al objeto de la entrada a consultar
+ * @return true Si pasó de inactiva a activa
+ * @return false En cualquier otro caso
+ */
+bool DigitalInputHasActivated(digital_input_t entrada);
+
+/**
+ * @brief Detecta si la Entrada Digital acaba de ser soltada (Flanco de desactivación)
+ * @param entrada Puntero al objeto de la entrada a consultar
+ * @return true Si pasó de activa a inactiva
+ * @return false En cualquier otro caso
+ */
+bool DigitalInputHasDeactivated(digital_input_t entrada);
+
+/* === End of conditional blocks =================================================================================== */
 
 #ifdef __cplusplus
 }
