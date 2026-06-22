@@ -6,6 +6,9 @@ struct clock_s {
     hora_t current_time;
     unsigned int ticks_per_second;
     unsigned int ticks_count;
+    hora_t alarm_time;
+    bool alarm_enabled;
+    void (*alarm_handler)(void);
 };
 
 clock_t RelojCreate(unsigned int ticks_per_second, void * alarm_handler) {
@@ -16,8 +19,9 @@ clock_t RelojCreate(unsigned int ticks_per_second, void * alarm_handler) {
     
     self->time_is_valid = false;
     self->ticks_per_second = ticks_per_second;
-    self->ticks_count = 0; // <-- Inicializamos en cero
-    
+    self->ticks_count = 0;
+    self->alarm_enabled = false;
+    self->alarm_handler = (void (*)(void))alarm_handler; 
     return self;
 }
 
@@ -89,6 +93,56 @@ void RelojNewTick(clock_t clock) {
                     }
                 }
             }
+        } 
+
+        // Verificación de la alarma: se hace una vez que la hora ya se actualizó
+        if (clock->alarm_enabled && clock->alarm_handler != NULL) {
+            // memcmp compara dos bloques de memoria, devuelve 0 si son idénticos
+            if (memcmp(clock->current_time, clock->alarm_time, sizeof(hora_t)) == 0) {
+                // Si la alarma está habilitada y la hora coincide, disparamos el evento
+                clock->alarm_handler();
+            }
         }
-    }
+
+    } 
+}
+
+void RelojSetupAlarm(clock_t clock, const hora_t alarm_time) {
+    // Copiamos la hora configurada a nuestra estructura interna
+    memcpy(clock->alarm_time, alarm_time, sizeof(hora_t));
+}
+
+void RelojGetAlarm(clock_t clock, hora_t alarm_time) {
+    // Copiamos la hora de la estructura interna al arreglo solicitado
+    memcpy(alarm_time, clock->alarm_time, sizeof(hora_t));
+}
+
+void RelojSetAlarmState(clock_t clock, bool state) {
+    clock->alarm_enabled = state;
+}
+
+bool RelojGetAlarmState(clock_t clock) {
+    return clock->alarm_enabled;
+}
+
+void RelojPostponeAlarm(clock_t clock, unsigned int delay_minutes) {
+    // 1. Convertimos la hora de la alarma a minutos totales desde la medianoche
+    unsigned int minutos_totales = (clock->alarm_time[0] * 600) + 
+                                   (clock->alarm_time[1] * 60) + 
+                                   (clock->alarm_time[2] * 10) + 
+                                   (clock->alarm_time[3]);
+
+    // 2. Le sumamos los minutos de demora
+    minutos_totales += delay_minutes;
+
+    // 3. Aplicamos módulo para que, si pasa de las 23:59, vuelva a empezar el día (24 horas = 1440 minutos)
+    minutos_totales %= (24 * 60);
+
+    // 4. Convertimos esos minutos totales nuevamente a formato BCD
+    clock->alarm_time[0] = minutos_totales / 600;                 // Decena de hora
+    clock->alarm_time[1] = (minutos_totales / 60) % 10;           // Unidad de hora
+    clock->alarm_time[2] = (minutos_totales % 60) / 10;           // Decena de minuto
+    clock->alarm_time[3] = (minutos_totales % 60) % 10;           // Unidad de minuto
+    
+    // Los segundos (posiciones 4 y 5) no se tocan porque posponemos por minutos cerrados
 }

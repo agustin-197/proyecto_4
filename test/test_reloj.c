@@ -103,3 +103,84 @@ void test_reloj_avanza_un_dia_completo(void) {
     RelojGetCurrentTime(reloj, tiempo_leido);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(tiempo_esperado, tiempo_leido, 6);
 }
+
+// Se puede fijar y consultar la hora de la alarma
+void test_reloj_fijar_alarma(void) {
+    clock_t reloj = RelojCreate(5, NULL);
+    hora_t hora_alarma = {0, 7, 3, 0, 0, 0}; // Las 07:30:00
+    hora_t hora_leida;
+
+    // Configuramos la alarma
+    RelojSetupAlarm(reloj, hora_alarma);
+
+    // Consultamos la alarma
+    RelojGetAlarm(reloj, hora_leida);
+    
+    // Verificamos que lo que leemos es exactamente lo que guardamos
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(hora_alarma, hora_leida, 6);
+}
+
+// Se puede habilitar, deshabilitar y consultar el estado de la alarma
+void test_reloj_estado_alarma(void) {
+    clock_t reloj = RelojCreate(5, NULL);
+
+    // Al iniciar, la alarma debería estar deshabilitada por defecto
+    TEST_ASSERT_FALSE(RelojGetAlarmState(reloj));
+
+    // Habilitamos la alarma y verificamos
+    RelojSetAlarmState(reloj, true);
+    TEST_ASSERT_TRUE(RelojGetAlarmState(reloj));
+
+    // Deshabilitamos la alarma y verificamos
+    RelojSetAlarmState(reloj, false);
+    TEST_ASSERT_FALSE(RelojGetAlarmState(reloj));
+}
+
+// Variable global para registrar si el evento de alarma ocurrió
+static bool alarma_sonando = false;
+
+// Esta es la función "callback" que el reloj deberá llamar
+void FuncionSimuladaAlarma(void) {
+    alarma_sonando = true;
+}
+
+// El reloj debe generar un evento al coincidir la hora y estar habilitada
+void test_reloj_dispara_alarma(void) {
+    // Reseteamos la bandera por si quedó sucia de otro lado
+    alarma_sonando = false; 
+    
+    // IMPORTANTE: Ahora le pasamos nuestra función simulada al crear el reloj
+    clock_t reloj = RelojCreate(1, FuncionSimuladaAlarma);
+    
+    hora_t tiempo_actual = {0, 7, 2, 9, 5, 9}; // 07:29:59
+    hora_t tiempo_alarma = {0, 7, 3, 0, 0, 0}; // 07:30:00
+
+    RelojSetupCurrentTime(reloj, tiempo_actual);
+    RelojSetupAlarm(reloj, tiempo_alarma);
+    RelojSetAlarmState(reloj, true); // Encendemos la alarma
+    
+    // Antes del Tick, la alarma NO debe estar sonando
+    TEST_ASSERT_FALSE(alarma_sonando);
+    
+    // Hacemos avanzar el tiempo 1 segundo (ahora serán las 07:30:00)
+    RelojNewTick(reloj);
+    
+    // Al coincidir la hora, la bandera debería haber cambiado a true
+    TEST_ASSERT_TRUE(alarma_sonando);
+}
+
+// Se puede posponer la alarma una cantidad arbitraria de minutos
+void test_reloj_posponer_alarma(void) {
+    clock_t reloj = RelojCreate(5, NULL);
+    hora_t hora_alarma = {1, 2, 3, 4, 0, 0};   // 12:34:00
+    hora_t hora_esperada = {1, 2, 3, 9, 0, 0}; // 12:39:00 (5 minutos después)
+    hora_t hora_leida;
+
+    RelojSetupAlarm(reloj, hora_alarma);
+    
+    // Posponemos la alarma por 5 minutos
+    RelojPostponeAlarm(reloj, 5);
+    
+    RelojGetAlarm(reloj, hora_leida);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(hora_esperada, hora_leida, 6);
+}
