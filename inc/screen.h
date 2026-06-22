@@ -36,17 +36,23 @@ SPDX-License-Identifier: MIT
  ** se controla mediante los callbacks @ref display_driver_t.
  **/
 
-/* === Headers files inclusions ==================================================================================== */
+/* === Headers files inclusions
+ * ====================================================================================
+ */
 
 #include <stdint.h>
 
-/* === Header for C++ compatibility ================================================================================ */
+/* === Header for C++ compatibility
+ * ================================================================================
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* === Public macros definitions =================================================================================== */
+/* === Public macros definitions
+ * ===================================================================================
+ */
 
 /** @brief Máscara del segmento A */
 #define SEGMENT_A (1 << 0)
@@ -72,15 +78,18 @@ extern "C" {
 /** @brief Máscara del punto decimal */
 #define SEGMENT_P (1 << 7)
 
-/* === Public data type declarations =============================================================================== */
+/* === Public data type declarations
+ * ===============================================================================
+ */
 
 /**
  * @brief Puntero opaco al descriptor de la pantalla multiplexada
  */
-typedef struct display_s * display_t;
+typedef struct display_s *display_t;
 
 /**
- * @brief Callback de bajo nivel para seleccionar el dígito activo en el hardware
+ * @brief Callback de bajo nivel para seleccionar el dígito activo en el
+ * hardware
  *
  * Debe encender únicamente el dígito indicado y apagar el resto.
  *
@@ -89,10 +98,12 @@ typedef struct display_s * display_t;
 typedef void (*display_update_digits_t)(uint8_t digit);
 
 /**
- * @brief Callback de bajo nivel para actualizar el patrón de segmentos encendidos
+ * @brief Callback de bajo nivel para actualizar el patrón de segmentos
+ * encendidos
  *
- * @param segments Máscara de bits con los segmentos activos (@ref SEGMENT_A .. @ref SEGMENT_P).
- *                 El valor @c 0x00 apaga todos los segmentos (pantalla en blanco).
+ * @param segments Máscara de bits con los segmentos activos (@ref SEGMENT_A ..
+ * @ref SEGMENT_P). El valor @c 0x00 apaga todos los segmentos (pantalla en
+ * blanco).
  */
 typedef void (*display_update_segments_t)(uint8_t segments);
 
@@ -100,20 +111,26 @@ typedef void (*display_update_segments_t)(uint8_t segments);
  * @brief Controlador de bajo nivel de la pantalla multiplexada
  */
 typedef struct display_driver_s {
-    display_update_digits_t UpdateDigits;     /**< Selecciona el dígito activo */
-    display_update_segments_t UpdateSegments; /**< Actualiza los segmentos encendidos */
-} const * const display_driver_t;
+    display_update_digits_t UpdateDigits; /**< Selecciona el dígito activo */
+    display_update_segments_t
+        UpdateSegments; /**< Actualiza los segmentos encendidos */
+} const *const display_driver_t;
 
-/* === Public variable declarations ================================================================================ */
+/* === Public variable declarations
+ * ================================================================================
+ */
 
-/* === Public function declarations ================================================================================ */
+/* === Public function declarations
+ * ================================================================================
+ */
 
 /**
  * @brief Crea una pantalla multiplexada de siete segmentos
  *
  * @param  digits  Cantidad de dígitos de la pantalla
  * @param  driver  Puntero a la estructura con los callbacks de hardware
- * @return         Descriptor de la pantalla, o @c NULL si no hay instancia disponible
+ * @return         Descriptor de la pantalla, o @c NULL si no hay instancia
+ * disponible
  */
 display_t DisplayCreate(uint8_t digits, display_driver_t driver);
 
@@ -124,12 +141,13 @@ display_t DisplayCreate(uint8_t digits, display_driver_t driver);
  * @param  number   Puntero al primer dígito BCD (cada elemento en @c 0..9)
  * @param  size     Cantidad de dígitos en @p number
  */
-void DisplayWriteBCD(display_t display, uint8_t * number, uint8_t size);
+void DisplayWriteBCD(display_t display, uint8_t *number, uint8_t size);
 
 /**
  * @brief Refresca un paso del barrido multiplexado
  *
- * Debe invocarse periódicamente desde una tarea o interrupción de temporización.
+ * Debe invocarse periódicamente desde una tarea o interrupción de
+ * temporización.
  *
  * @param  display  Descriptor creado con @ref DisplayCreate
  */
@@ -141,9 +159,11 @@ void DisplayRefresh(display_t display);
  * @param  display    Descriptor creado con @ref DisplayCreate
  * @param  from       Índice del primer dígito que parpadea
  * @param  to         Índice del último dígito que parpadea
- * @param  frecuency  Divisor respecto al ciclo de refresco; @c 0 desactiva el parpadeo
+ * @param  frecuency  Divisor respecto al ciclo de refresco; @c 0 desactiva el
+ * parpadeo
  */
-void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to, uint16_t frecuency);
+void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to,
+                        uint16_t frecuency);
 
 /**
  * @brief Conmuta el punto decimal de un rango de dígitos
@@ -154,7 +174,9 @@ void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to, uint16_t fr
  */
 void DisplayToggleDots(display_t display, uint8_t from, uint8_t to);
 
-/* === End of conditional blocks =================================================================================== */
+/* === End of conditional blocks
+ * ===================================================================================
+ */
 
 #ifdef __cplusplus
 }

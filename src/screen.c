@@ -32,29 +32,32 @@ SPDX-License-Identifier: MIT
  ** directamente, sino a través de callbacks (driver).
  **/
 
-/* === Headers files inclusions ================================================================ */
+/* === Headers files inclusions
+ * ================================================================ */
 
 #include "screen.h"
 #include <string.h>
 #include <stdbool.h>
 
-/* === Macros definitions ====================================================================== */
+/* === Macros definitions
+ * ====================================================================== */
 
 /**
  * @brief Cantidad máxima de pantallas que se pueden instanciar
  */
 #define DISPLAY_MAX_INSTANCES 1
 
-/* === Private data type declarations ========================================================== */
+/* === Private data type declarations
+ * ========================================================== */
 
 /**
  * @brief Estructura interna (oculta) del descriptor de la pantalla
  */
 struct display_s {
-    uint8_t digits;                 
-    uint8_t active_digit;           
-    uint8_t memory[8];              
-    struct display_driver_s driver; 
+    uint8_t digits;
+    uint8_t active_digit;
+    uint8_t memory[8];
+    struct display_driver_s driver;
     // Nuevas variables para el parpadeo:
     uint8_t flash_from;
     uint8_t flash_to;
@@ -63,24 +66,27 @@ struct display_s {
     bool is_flashing;
 };
 
-/* === Private function declarations =========================================================== */
+/* === Private function declarations
+ * =========================================================== */
 
-/* === Private variable definitions ============================================================ */
+/* === Private variable definitions
+ * ============================================================ */
 
 /**
  * @brief Tabla de conversión BCD a máscara de 7 segmentos
  */
 static const uint8_t IMAGENES[] = {
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F,              // 0
-    SEGMENT_B | SEGMENT_C,                                                              // 1
-    SEGMENT_A | SEGMENT_B | SEGMENT_D | SEGMENT_E | SEGMENT_G,                          // 2
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_G,                          // 3
-    SEGMENT_B | SEGMENT_C | SEGMENT_F | SEGMENT_G,                                      // 4
-    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G,                          // 5
-    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G,              // 6
-    SEGMENT_A | SEGMENT_B | SEGMENT_C,                                                  // 7
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G,  // 8
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G               // 9
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F, // 0
+    SEGMENT_B | SEGMENT_C,                                                 // 1
+    SEGMENT_A | SEGMENT_B | SEGMENT_D | SEGMENT_E | SEGMENT_G,             // 2
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_G,             // 3
+    SEGMENT_B | SEGMENT_C | SEGMENT_F | SEGMENT_G,                         // 4
+    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G,             // 5
+    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G, // 6
+    SEGMENT_A | SEGMENT_B | SEGMENT_C,                                     // 7
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F |
+        SEGMENT_G,                                                        // 8
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G // 9
 };
 
 /**
@@ -89,18 +95,22 @@ static const uint8_t IMAGENES[] = {
  */
 static struct display_s instances[DISPLAY_MAX_INSTANCES];
 
-/* === Public variable definition  ============================================================= */
+/* === Public variable definition
+ * ============================================================= */
 
-/* === Private function definitions ============================================================ */
+/* === Private function definitions
+ * ============================================================ */
 
-/* === Public function implementation ========================================================== */
+/* === Public function implementation
+ * ========================================================== */
 
 display_t DisplayCreate(uint8_t digits, display_driver_t driver) {
     display_t display = &instances[0];
 
     display->digits = digits;
-    display->active_digit = digits - 1; // Para que el primer refresco empiece en el dígito 0
-    
+    display->active_digit =
+        digits - 1; // Para que el primer refresco empiece en el dígito 0
+
     display->driver.UpdateDigits = driver->UpdateDigits;
     display->driver.UpdateSegments = driver->UpdateSegments;
 
@@ -112,10 +122,11 @@ display_t DisplayCreate(uint8_t digits, display_driver_t driver) {
     return display;
 }
 
-void DisplayWriteBCD(display_t display, uint8_t * number, uint8_t size) {
+void DisplayWriteBCD(display_t display, uint8_t *number, uint8_t size) {
     for (uint8_t i = 0; i < size; i++) {
         if (i < display->digits) {
-            // Invertimos el orden al guardar para compensar el ruteo físico de la placa
+            // Invertimos el orden al guardar para compensar el ruteo físico de
+            // la placa
             display->memory[display->digits - 1 - i] = IMAGENES[number[i]];
         }
     }
@@ -128,7 +139,8 @@ void DisplayRefresh(display_t display) {
     // Lógica para determinar si el dígito actual debe parpadear
     bool hide_digit = false;
     if (display->flash_freq > 0) {
-        // Incrementamos el tiempo solo 1 vez por ciclo completo (cuando volvemos al dígito 0)
+        // Incrementamos el tiempo solo 1 vez por ciclo completo (cuando
+        // volvemos al dígito 0)
         if (display->active_digit == 0) {
             display->flash_count++;
             if (display->flash_count >= display->flash_freq) {
@@ -136,11 +148,13 @@ void DisplayRefresh(display_t display) {
                 display->is_flashing = !display->is_flashing;
             }
         }
-        
+
         // Calculamos a qué dígito lógico (0 a 3) corresponde el hardware actual
         uint8_t logical_digit = display->digits - 1 - display->active_digit;
-        if (logical_digit >= display->flash_from && logical_digit <= display->flash_to) {
-            if (display->is_flashing) hide_digit = true;
+        if (logical_digit >= display->flash_from &&
+            logical_digit <= display->flash_to) {
+            if (display->is_flashing)
+                hide_digit = true;
         }
     }
 
@@ -155,7 +169,8 @@ void DisplayRefresh(display_t display) {
     }
 }
 
-void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to, uint16_t frecuency) {
+void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to,
+                        uint16_t frecuency) {
     display->flash_from = from;
     display->flash_to = to;
     display->flash_freq = frecuency;
@@ -172,4 +187,5 @@ void DisplayToggleDots(display_t display, uint8_t from, uint8_t to) {
     }
 }
 
-/* === End of documentation ==================================================================== */
+/* === End of documentation
+ * ==================================================================== */

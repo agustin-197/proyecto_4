@@ -28,51 +28,63 @@ SPDX-License-Identifier: MIT
 
 /** @file main.c
  ** @brief Programa de prueba para el barrido de la pantalla de 7 segmentos
- ** @details Archivo principal de la aplicación que inicializa el hardware y ejecuta
+ ** @details Archivo principal de la aplicación que inicializa el hardware y
+ * ejecuta
  ** un bucle infinito para validar el funcionamiento del display multiplexado.
  **/
 
-/* === Headers files inclusions ================================================================ */
+/* === Headers files inclusions
+ * ================================================================ */
 
 #include "placa.h"
 #include "screen.h"
 
-/* === Macros definitions ====================================================================== */
+/* === Macros definitions
+ * ====================================================================== */
 
 /**
  * @brief Cantidad de ciclos de reloj para el retardo
- * @details Este valor permite ajustar la velocidad a la que se refresca la pantalla
- * durante la prueba visual.
+ * @details Este valor permite ajustar la velocidad a la que se refresca la
+ * pantalla durante la prueba visual.
  */
 #define CICLOS_RETARDO 10000
 
-/* === Private data type declarations ========================================================== */
+/* === Private data type declarations
+ * ========================================================== */
 
-/* === Private function declarations =========================================================== */
+/* === Private function declarations
+ * =========================================================== */
 
 /**
  * @brief Función de retardo muy rudimentaria para la prueba visual
  * @details Utiliza un bucle for para perder ciclos de reloj.
  * No es exacta y solo sirve para esta prueba inicial.
- * @param[in] iteraciones Cantidad de iteraciones del bucle for para generar la demora.
+ * @param[in] iteraciones Cantidad de iteraciones del bucle for para generar la
+ * demora.
  */
 void RetardoBloqueante(uint32_t iteraciones) {
-    for (volatile uint32_t i = 0; i < iteraciones; i++);
+    for (volatile uint32_t i = 0; i < iteraciones; i++)
+        ;
 }
 
-/* === Private variable definitions ============================================================ */
+/* === Private variable definitions
+ * ============================================================ */
 
-/* === Public variable definition  ============================================================= */
+/* === Public variable definition
+ * ============================================================= */
 
-/* === Private function definitions ============================================================ */
+/* === Private function definitions
+ * ============================================================ */
 
-/* === Public function implementation ========================================================== */
+/* === Public function implementation
+ * ========================================================== */
 
 /**
  * @brief Función principal del programa
  * @details Inicializa la placa EDU-CIAA, configura la pantalla y el zumbador,
  * y ejecuta el bucle principal de barrido y prueba.
- * @return int Retorna 0 al finalizar la ejecución (nunca debería ocurrir en un sistema embebido).
+ * @return int Retorna 0 al finalizar la ejecución (nunca debería ocurrir en un
+ * sistema embebido).
  */
 int main(void) {
     board_t mi_placa = BoardCreate();
@@ -94,7 +106,7 @@ int main(void) {
         DisplayRefresh(mi_placa->display);
 
         // 2. PRUEBA DE TECLAS Y FUNCIONES:
-        
+
         // Tecla ACEPTAR: Desplaza los números (0123 -> 1234 -> 2345)
         if (DigitalInputHasActivated(mi_placa->tecla_accept)) {
             offset++;
@@ -103,14 +115,15 @@ int main(void) {
             buffer_display[1] = digitos_completos[(offset + 1) % 10];
             buffer_display[2] = digitos_completos[(offset + 2) % 10];
             buffer_display[3] = digitos_completos[(offset + 3) % 10];
-            
+
             // ACTUALIZAMOS LA MEMORIA SOLO CUANDO CAMBIAN LOS NÚMEROS
             DisplayWriteBCD(mi_placa->display, buffer_display, 4);
-            
+
             DigitalOutputToggle(mi_placa->buzzer); // Sonido/LED de confirmación
         }
 
-        // Tecla CANCELAR: Prueba de la función ToggleDots (enciende/apaga puntos)
+        // Tecla CANCELAR: Prueba de la función ToggleDots (enciende/apaga
+        // puntos)
         if (DigitalInputHasActivated(mi_placa->tecla_cancel)) {
             DisplayToggleDots(mi_placa->display, 0, 3);
         }
@@ -118,7 +131,7 @@ int main(void) {
         // Tecla F1: Activa el parpadeo (FlashDigits) en todos los dígitos
         // 100 significa que cambiará de estado cada 100 ciclos de barrido
         if (DigitalInputHasActivated(mi_placa->tecla_f1)) {
-            DisplayFlashDigits(mi_placa->display, 0, 3, 100); 
+            DisplayFlashDigits(mi_placa->display, 0, 3, 100);
         }
 
         // Tecla F2: Apaga el parpadeo (frecuencia 0)
@@ -131,4 +144,5 @@ int main(void) {
     return 0;
 }
 
-/* === End of documentation ==================================================================== */
+/* === End of documentation
+ * ==================================================================== */
