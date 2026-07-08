@@ -1,28 +1,101 @@
+/*********************************************************************************************************************
+Copyright 2016-2025, Laboratorio de Microprocesadores
+Facultad de Ciencias Exactas y Tecnología
+Universidad Nacional de Tucuman
+http://www.microprocesadores.unt.edu.ar/
+
+Copyright 2026, Gerardo Agustín Díaz <agustin041097@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+SPDX-License-Identifier: MIT
+*********************************************************************************************************************/
+
+/** @file maquina_estados.c
+ ** @brief Implementación de la máquina de estados del reloj
+ ** @details Contiene la lógica de transiciones, el control de botones con
+ ** filtro anti-rebote y la gestión de la pantalla multiplexada.
+ **/
+
+/* === Headers files inclusions =================================================== */
+
 #include "maquina_estados.h"
 #include <stdbool.h>
 
+/* === Macros definitions ========================================================= */
+
+/** @brief Frecuencia de parpadeo de los dígitos de la pantalla en milisegundos */
 #define FREC_PARPADEO 200 
 
-/* === Definición de los Estados === */
+/* === Private data type declarations ============================================= */
+
+/**
+ * @brief Definición de los posibles estados operativos del sistema
+ */
 typedef enum {
-    MODO_SIN_AJUSTAR,
-    MODO_NORMAL,
-    MODO_AJUSTE_HORAS,
-    MODO_AJUSTE_MINUTOS,
-    MODO_AJUSTE_HORAS_ALARMA,
-    MODO_AJUSTE_MINUTOS_ALARMA
+    MODO_SIN_AJUSTAR,          /**< El reloj arranca sin hora definida, titilando */
+    MODO_NORMAL,               /**< Mostrando la hora actual y transcurriendo los segundos */
+    MODO_AJUSTE_HORAS,         /**< Ajustando las horas del reloj */
+    MODO_AJUSTE_MINUTOS,       /**< Ajustando los minutos del reloj */
+    MODO_AJUSTE_HORAS_ALARMA,  /**< Ajustando las horas de la alarma */
+    MODO_AJUSTE_MINUTOS_ALARMA /**< Ajustando los minutos de la alarma */
 } modo_reloj_t;
 
-/* === Variables Privadas del Módulo === */
-static board_t board;
-static clock_t reloj;
-static modo_reloj_t estado_actual;
-static hora_t hora_ajuste;
+/* === Private variable declarations ============================================== */
 
-// Temporizador para ignorar los rebotes de las teclas
-static uint16_t temporizador_antirebote = 0;
+/* === Private function declarations ============================================== */
 
-/* === Funciones Privadas (Matemática BCD) === */
+/**
+ * @brief Incrementa en una unidad la hora en formato BCD
+ * @param hora Arreglo que contiene la hora a modificar
+ */
+static void IncrementarHoraBCD(hora_t hora);
+
+/**
+ * @brief Decrementa en una unidad la hora en formato BCD
+ * @param hora Arreglo que contiene la hora a modificar
+ */
+static void DecrementarHoraBCD(hora_t hora);
+
+/**
+ * @brief Incrementa en una unidad el minuto en formato BCD
+ * @param hora Arreglo que contiene la hora a modificar
+ */
+static void IncrementarMinutoBCD(hora_t hora);
+
+/**
+ * @brief Decrementa en una unidad el minuto en formato BCD
+ * @param hora Arreglo que contiene la hora a modificar
+ */
+static void DecrementarMinutoBCD(hora_t hora);
+
+/* === Public variable definitions ================================================ */
+
+/* === Private variable definitions =============================================== */
+
+static board_t board;                      /**< Puntero a los recursos de hardware de la placa */
+static clock_t reloj;                      /**< Puntero a la instancia del reloj en memoria */
+static modo_reloj_t estado_actual;         /**< Almacena el estado operativo actual de la máquina */
+static hora_t hora_ajuste;                 /**< Buffer temporal para modificar horas y minutos sin afectar el reloj */
+static uint16_t temporizador_antirebote = 0; /**< Temporizador para ignorar rebotes mecánicos de las teclas */
+
+/* === Private function definitions =============================================== */
+
 static void IncrementarHoraBCD(hora_t hora) {
     hora[1]++;
     if (hora[0] == 2 && hora[1] > 3) {
@@ -62,7 +135,7 @@ static void DecrementarMinutoBCD(hora_t hora) {
     }
 }
 
-/* === Funciones Públicas === */
+/* === Public function implementation ============================================= */
 
 void MaquinaEstados_Init(board_t b, clock_t r) {
     board = b;
