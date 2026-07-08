@@ -197,5 +197,15 @@ void DigitalOutputToggle(digital_output_t self) {
     Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, self->puerto, self->terminal);
 }
 
+/**
+ * @brief Consulta el estado lógico actual de una salida digital
+ * @param self Puntero al objeto de la salida digital
+ * @return true Si la salida está en alto (encendida)
+ * @return false Si la salida está en bajo (apagada)
+ */
+bool DigitalOutputGetState(digital_output_t self) {
+    return Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, self->puerto, self->terminal);
+}
+
 /* === End of documentation
  * ==================================================================== */

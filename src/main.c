@@ -25,4 +25,42 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SPDX-License-Identifier: MIT
 *********************************************************************************************************************/
+#include "placa.h"
+#include "reloj.h"
+#include "chip.h"
+#include "maquina_estados.h"
 
+/* Variables globales estáticas */
+static board_t board;
+static clock_t reloj;
+
+/* Callback de la alarma */
+void AlarmaSonando(void) {
+    DigitalOutputActivate(board->buzzer);
+}
+
+/* Interrupción del Hardware (1 ms) */
+void SysTick_Handler(void) {
+    // Le delegamos el trabajo pesado en la interrupción a nuestra máquina de estados
+    MaquinaEstados_Tick(); 
+}
+
+int main(void) {
+    // 1. Inicializar el hardware y el reloj
+    board = BoardCreate();
+    reloj = RelojCreate(1, AlarmaSonando);
+
+    // 2. Inicializar nuestra máquina de estados
+    MaquinaEstados_Init(board, reloj);
+
+    // 3. Configurar el hardware del SysTick (Microcontrolador)
+    SystemCoreClockUpdate();
+    SysTick_Config(SystemCoreClock / 1000);
+
+    // 4. Bucle infinito súper limpio
+    while (1) {
+        // La máquina de estados se encarga de leer botones y actualizar el display
+        MaquinaEstados_Update(); 
+    }
+    return 0;
+}

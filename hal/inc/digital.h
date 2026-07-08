@@ -105,6 +105,14 @@ void DigitalOutputDeactivate(digital_output_t salida);
 void DigitalOutputToggle(digital_output_t salida);
 
 /**
+ * @brief Consulta el estado actual de una Salida Digital
+ * @param salida Puntero al objeto de la salida a consultar
+ * @return true Si la salida está activada
+ * @return false Si la salida está desactivada
+ */
+bool DigitalOutputGetState(digital_output_t salida);
+
+/**
  * @brief Crea y configura una nueva Entrada Digital
  * @param puerto Puerto GPIO al que pertenece el pin
  * @param terminal Número de pin dentro del puerto GPIO
