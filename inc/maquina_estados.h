@@ -26,7 +26,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 SPDX-License-Identifier: MIT
 *********************************************************************************************************************/
 
-
 #ifndef MAQUINA_ESTADOS_H_
 #define MAQUINA_ESTADOS_H_
 
@@ -36,24 +35,30 @@ SPDX-License-Identifier: MIT
  ** la lógica principal de la interfaz de usuario del reloj digital.
  **/
 
-/* === Headers files inclusions =================================================== */
+/* === Headers files inclusions
+ * =================================================== */
 
 #include "placa.h"
 #include "reloj.h"
 
-/* === Header for C++ compatibility =============================================== */
+/* === Header for C++ compatibility
+ * =============================================== */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* === Public macros definitions ================================================== */
+/* === Public macros definitions
+ * ================================================== */
 
-/* === Public data type declarations ============================================== */
+/* === Public data type declarations
+ * ============================================== */
 
-/* === Public variable declarations =============================================== */
+/* === Public variable declarations
+ * =============================================== */
 
-/* === Public function declarations =============================================== */
+/* === Public function declarations
+ * =============================================== */
 
 /**
  * @brief Inicializa la máquina de estados
@@ -80,7 +85,8 @@ void MaquinaEstados_Tick(void);
  */
 void MaquinaEstados_Update(void);
 
-/* === End of conditional blocks ================================================== */
+/* === End of conditional blocks
+ * ================================================== */
 
 #ifdef __cplusplus
 }

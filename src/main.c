@@ -25,6 +25,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SPDX-License-Identifier: MIT
 *********************************************************************************************************************/
+/** @file main.c
+ ** @brief Punto de entrada del programa principal
+ ** @details Inicializa los periféricos, configura el sistema de interrupciones
+ ** y ejecuta el bucle principal de la máquina de estados del reloj.
+ **/
+
 #include "placa.h"
 #include "reloj.h"
 #include "chip.h"
@@ -41,8 +47,9 @@ void AlarmaSonando(void) {
 
 /* Interrupción del Hardware (1 ms) */
 void SysTick_Handler(void) {
-    // Le delegamos el trabajo pesado en la interrupción a nuestra máquina de estados
-    MaquinaEstados_Tick(); 
+    // Le delegamos el trabajo pesado en la interrupción a nuestra máquina de
+    // estados
+    MaquinaEstados_Tick();
 }
 
 int main(void) {
@@ -59,8 +66,9 @@ int main(void) {
 
     // 4. Bucle infinito súper limpio
     while (1) {
-        // La máquina de estados se encarga de leer botones y actualizar el display
-        MaquinaEstados_Update(); 
+        // La máquina de estados se encarga de leer botones y actualizar el
+        // display
+        MaquinaEstados_Update();
     }
     return 0;
 }
